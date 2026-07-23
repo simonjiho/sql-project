@@ -1,0 +1,638 @@
+
+Project academic_management_erd {
+  database_type: 'PostgreSQL'
+  Note: '모델 정제 결과인 18개 엔터티와 24개 물리 관계를 표현한 dbdiagram용 ERD'
+}
+
+// -----------------------------------------------------------------------------
+// Domain enums
+// -----------------------------------------------------------------------------
+
+Enum academic.student_status {
+  ENROLLED
+  LEAVE
+  GRADUATED
+  EXPELLED
+}
+
+Enum academic.professor_status {
+  ACTIVE
+  RETIRED
+}
+
+Enum academic.course_status {
+  RECRUITING
+  CLOSED
+  CANCELLED
+}
+
+Enum academic.enrollment_status {
+  ENROLLED
+  CANCELLED
+}
+
+Enum academic.grade_code {
+  "A+"
+  A0
+  "B+"
+  B0
+  "C+"
+  C0
+  "D+"
+  D0
+  F
+}
+
+Enum audit.actor_kind {
+  HUMAN
+  SYSTEM
+}
+
+Enum audit.actor_role_code {
+  STUDENT
+  PROFESSOR
+  ACADEMIC_STAFF
+  ACADEMIC_MANAGER
+  AUDITOR
+  SYSTEM
+}
+
+Enum audit.change_request_status {
+  PENDING
+  REJECTED
+  CANCELLED
+  STALE
+  APPLIED
+}
+
+Enum audit.approval_decision {
+  APPROVE
+  REJECT
+}
+
+Enum audit.execution_source {
+  USER
+  SYSTEM
+  IMPORT
+}
+
+Enum audit.cancellation_source {
+  STUDENT_REQUEST
+  ADMIN_OVERRIDE
+  COURSE_CANCELLED
+}
+
+Enum audit.change_operation_type {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+Enum audit.access_type {
+  SEARCH
+  DETAIL
+  EXPORT
+}
+
+Enum audit.retention_policy_status {
+  ACTIVE
+  RETIRED
+}
+
+Enum audit.disposal_execution_status {
+  APPROVED
+  RUNNING
+  COMPLETED
+  PARTIAL
+  FAILED
+}
+
+// -----------------------------------------------------------------------------
+// academic schema: 6 tables
+// -----------------------------------------------------------------------------
+
+Table academic.department [headerColor: #2563EB] {
+  department_id bigint [pk, increment, not null, note: '학과 내부 식별자']
+  department_code varchar(20) [not null, unique, note: '대문자 정규화, 변경 불가']
+  department_name varchar(200) [not null, note: '공식 학과명']
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (`lower(department_name)`) [unique, name: 'uq_department_name_ci']
+  }
+
+  Note: '현재 학과 기준정보'
+}
+
+Table academic.student [headerColor: #2563EB] {
+  student_id bigint [pk, increment, not null]
+  student_number varchar(20) [not null, unique, note: '변경·재사용 금지']
+  student_name varchar(100) [not null]
+  email varchar(254) [not null, unique, note: '소문자 정규화']
+  grade_year smallint [not null]
+  academic_status academic.student_status [not null]
+  admission_date date [not null]
+  phone_number varchar(30)
+  department_id bigint [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    department_id [name: 'ix_student_department']
+  }
+
+  checks {
+    `grade_year between 1 and 4` [name: 'chk_student_grade_year']
+    `admission_date <= created_at::date` [name: 'chk_student_admission_date']
+  }
+}
+
+Table academic.professor [headerColor: #2563EB] {
+  professor_id bigint [pk, increment, not null]
+  employee_number varchar(20) [not null, unique, note: '변경·재사용 금지']
+  professor_name varchar(100) [not null]
+  email varchar(254) [not null, unique, note: '소문자 정규화']
+  employment_status academic.professor_status [not null]
+  department_id bigint [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    department_id [name: 'ix_professor_department']
+  }
+}
+
+Table academic.subject [headerColor: #2563EB] {
+  subject_id bigint [pk, increment, not null]
+  subject_code varchar(20) [not null, unique, note: '변경·재사용 금지']
+  subject_name varchar(200) [not null]
+  credits smallint [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  checks {
+    `credits in (1, 2, 3)` [name: 'chk_subject_credits']
+  }
+}
+
+Table academic.course_offering [headerColor: #2563EB] {
+  class_id bigint [pk, increment, not null]
+  subject_id bigint [not null]
+  professor_id bigint [not null]
+  opening_year smallint [not null]
+  semester smallint [not null]
+  section varchar(10) [not null, note: '대문자 정규화']
+  capacity integer [not null]
+  opening_status academic.course_status [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (subject_id, opening_year, semester, section) [unique, name: 'uq_course_offering_business_key']
+    professor_id [name: 'ix_course_offering_professor']
+  }
+
+  checks {
+    `opening_year between 2000 and 2100` [name: 'chk_course_opening_year']
+    `semester in (1, 2)` [name: 'chk_course_semester']
+    `capacity >= 1` [name: 'chk_course_capacity']
+  }
+}
+
+Table academic.enrollment [headerColor: #2563EB] {
+  enrollment_id bigint [pk, increment, not null]
+  student_id bigint [not null]
+  class_id bigint [not null]
+  enrollment_status academic.enrollment_status [not null]
+  enrolled_at timestamptz [not null]
+  cancelled_at timestamptz
+  grade academic.grade_code
+  grade_updated_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  indexes {
+    (student_id, class_id) [unique, name: 'uq_enrollment_student_class']
+    class_id [name: 'ix_enrollment_class']
+  }
+
+  checks {
+    `(enrollment_status = 'ENROLLED' and cancelled_at is null) or (enrollment_status = 'CANCELLED' and cancelled_at is not null and cancelled_at >= enrolled_at)` [name: 'chk_enrollment_cancellation']
+    `(grade is null and grade_updated_at is null) or (grade is not null and grade_updated_at is not null)` [name: 'chk_enrollment_grade_timestamp']
+    `not (enrollment_status = 'CANCELLED' and grade is not null)` [name: 'chk_cancelled_enrollment_grade']
+  }
+}
+
+// -----------------------------------------------------------------------------
+// audit schema: identity and change audit
+// -----------------------------------------------------------------------------
+
+Table audit.audit_actor [headerColor: #7C3AED] {
+  actor_id bigint [pk, increment, not null]
+  actor_code varchar(50) [not null, unique, note: '불변 행위자 코드']
+  display_name varchar(100) [not null]
+  actor_kind audit.actor_kind [not null]
+  is_active boolean [not null, default: true]
+  student_number_snapshot varchar(20) [note: '학사 FK 없음']
+  employee_number_snapshot varchar(20) [note: '학사 FK 없음']
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  Note: '사람 또는 시스템 행위자. 물리 삭제 대신 비활성화'
+}
+
+Table audit.audit_actor_role [headerColor: #7C3AED] {
+  actor_role_id bigint [pk, increment, not null]
+  actor_id bigint [not null]
+  role_code audit.actor_role_code [not null]
+  valid_from timestamptz [not null]
+  valid_to timestamptz
+  created_at timestamptz [not null]
+
+  indexes {
+    (actor_id, role_code, valid_from) [unique, name: 'uq_actor_role_period']
+  }
+
+  checks {
+    `valid_to is null or valid_to > valid_from` [name: 'chk_actor_role_period']
+  }
+}
+
+Table audit.change_request [headerColor: #7C3AED] {
+  change_request_id bigint [pk, increment, not null]
+  request_type varchar(50) [not null, note: '요구사항에서 승인된 요청 유형 코드']
+  requester_actor_id bigint [not null]
+  requester_code_snapshot varchar(50) [not null]
+  requester_name_snapshot varchar(100) [not null]
+  target_type varchar(50) [not null, note: '학사 대상 유형; 물리 FK 없음']
+  target_id_snapshot bigint [not null]
+  business_key_snapshot jsonb [not null]
+  before_snapshot jsonb [not null]
+  proposed_after_snapshot jsonb [not null]
+  target_version_snapshot timestamptz [not null]
+  reason text [not null]
+  request_status audit.change_request_status [not null]
+  cancellation_source audit.cancellation_source
+  requested_at timestamptz [not null]
+  closed_at timestamptz
+  updated_at timestamptz [not null]
+
+  indexes {
+    requester_actor_id [name: 'ix_change_request_requester']
+    (target_type, target_id_snapshot) [name: 'ix_change_request_target_snapshot']
+    request_status [name: 'ix_change_request_status']
+  }
+
+  checks {
+    `(request_status = 'PENDING' and closed_at is null) or (request_status <> 'PENDING' and closed_at is not null)` [name: 'chk_change_request_closed_at']
+  }
+
+  Note: '학사 대상은 스냅샷으로만 연결하며 물리 FK를 두지 않음'
+}
+
+Table audit.change_approval [headerColor: #7C3AED] {
+  change_approval_id bigint [pk, increment, not null]
+  change_request_id bigint [not null, unique, note: '요청당 최종 판단 최대 1건']
+  approver_actor_id bigint [not null]
+  approver_code_snapshot varchar(50) [not null]
+  approver_name_snapshot varchar(100) [not null]
+  decision audit.approval_decision [not null]
+  decision_reason text
+  decided_at timestamptz [not null]
+  recorded_at timestamptz [not null]
+
+  indexes {
+    approver_actor_id [name: 'ix_change_approval_approver']
+  }
+
+  checks {
+    `decision <> 'REJECT' or decision_reason is not null` [name: 'chk_rejection_reason']
+  }
+}
+
+Table audit.change_operation [headerColor: #7C3AED] {
+  change_operation_id bigint [pk, increment, not null]
+  change_request_id bigint [unique, note: 'NULL이 아닌 요청당 적용처리 최대 1건']
+  requester_actor_id bigint
+  initiator_actor_id bigint [not null]
+  executor_actor_id bigint [not null]
+  requester_code_snapshot varchar(50)
+  requester_name_snapshot varchar(100)
+  initiator_code_snapshot varchar(50) [not null]
+  initiator_name_snapshot varchar(100) [not null]
+  executor_code_snapshot varchar(50) [not null]
+  executor_name_snapshot varchar(100) [not null]
+  execution_source audit.execution_source [not null]
+  reason text
+  is_important boolean [not null]
+  cancellation_source audit.cancellation_source
+  correlation_id uuid
+  occurred_at timestamptz [not null]
+  recorded_at timestamptz [not null]
+
+  indexes {
+    requester_actor_id [name: 'ix_change_operation_requester']
+    initiator_actor_id [name: 'ix_change_operation_initiator']
+    executor_actor_id [name: 'ix_change_operation_executor']
+    correlation_id [name: 'ix_change_operation_correlation']
+    (is_important, occurred_at) [name: 'ix_change_operation_important_time']
+  }
+
+  checks {
+    `(requester_actor_id is null and requester_code_snapshot is null and requester_name_snapshot is null) or (requester_actor_id is not null and requester_code_snapshot is not null and requester_name_snapshot is not null)` [name: 'chk_change_operation_requester_snapshot']
+  }
+}
+
+Table audit.change_record [headerColor: #7C3AED] {
+  change_record_id bigint [pk, increment, not null]
+  change_operation_id bigint [not null]
+  record_sequence integer [not null]
+  operation_type audit.change_operation_type [not null]
+  target_type varchar(50) [not null, note: '학사 대상 유형; 물리 FK 없음']
+  target_id_snapshot bigint [not null]
+  business_key_snapshot jsonb [not null]
+  before_snapshot jsonb
+  after_snapshot jsonb
+  changed_columns text[] [not null, note: '감사 생성 함수가 전후 스냅샷 비교로 생성; 중복·빈 문자열·임의 수정 금지']
+  student_number_tag varchar(20)
+  subject_code_tag varchar(20)
+  opening_year_tag smallint
+  semester_tag smallint
+  section_tag varchar(10)
+  snapshot_schema_version integer [not null]
+  recorded_at timestamptz [not null]
+
+  indexes {
+    (change_operation_id, record_sequence) [unique, name: 'uq_change_record_operation_sequence']
+    (target_type, target_id_snapshot) [name: 'ix_change_record_target_snapshot']
+    (student_number_tag, recorded_at) [name: 'ix_change_record_student_timeline']
+    (subject_code_tag, opening_year_tag, semester_tag, section_tag, recorded_at) [name: 'ix_change_record_class_timeline']
+  }
+
+  checks {
+    `record_sequence >= 1` [name: 'chk_change_record_sequence']
+    `snapshot_schema_version >= 1` [name: 'chk_change_record_schema_version']
+    `(operation_type = 'CREATE' and before_snapshot is null and after_snapshot is not null) or (operation_type = 'UPDATE' and before_snapshot is not null and after_snapshot is not null) or (operation_type = 'DELETE' and before_snapshot is not null and after_snapshot is null)` [name: 'chk_change_record_snapshots']
+    `operation_type <> 'UPDATE' or cardinality(changed_columns) >= 1` [name: 'chk_change_record_changed_columns_required']
+    `(subject_code_tag is null and opening_year_tag is null and semester_tag is null and section_tag is null) or (subject_code_tag is not null and opening_year_tag is not null and semester_tag in (1, 2) and section_tag is not null)` [name: 'chk_change_record_class_tags']
+  }
+
+  Note: '학사 대상과 FK 없이 당시 업무키·전후값을 보존'
+}
+
+Table audit.change_record_category [headerColor: #7C3AED] {
+  change_record_category_id bigint [pk, increment, not null]
+  change_record_id bigint [not null]
+  category_code varchar(50) [not null]
+
+  indexes {
+    (change_record_id, category_code) [unique, name: 'uq_change_record_category']
+  }
+
+  Note: '모든 변경기록에는 절차상 최소 1건 필요'
+}
+
+Table audit.audit_access_log [headerColor: #7C3AED] {
+  access_log_id bigint [pk, increment, not null]
+  viewer_actor_id bigint [not null]
+  viewer_code_snapshot varchar(50) [not null]
+  viewer_name_snapshot varchar(100) [not null]
+  access_type audit.access_type [not null]
+  target_audit_type varchar(50) [not null]
+  access_purpose text [not null]
+  filter_snapshot jsonb [not null]
+  result_count integer
+  is_success boolean [not null]
+  failure_detail text
+  accessed_at timestamptz [not null]
+
+  indexes {
+    viewer_actor_id [name: 'ix_audit_access_log_viewer']
+    accessed_at [name: 'ix_audit_access_log_accessed_at']
+  }
+
+  checks {
+    `(is_success and result_count is not null and result_count >= 0 and failure_detail is null) or (not is_success and result_count is null and failure_detail is not null)` [name: 'chk_audit_access_result']
+  }
+}
+
+Table audit.audit_correction [headerColor: #7C3AED] {
+  audit_correction_id bigint [pk, increment, not null]
+  original_record_type varchar(50) [not null, note: '다형 논리 참조 유형']
+  original_record_id bigint [not null, note: '다형 논리 참조 ID']
+  correction_reason text [not null]
+  correct_explanation text [not null]
+  corrector_actor_id bigint [not null]
+  corrector_code_snapshot varchar(50) [not null]
+  corrector_name_snapshot varchar(100) [not null]
+  recorded_at timestamptz [not null]
+
+  indexes {
+    (original_record_type, original_record_id) [name: 'ix_audit_correction_original']
+    corrector_actor_id [name: 'ix_audit_correction_corrector']
+  }
+
+  Note: '감사 원본을 수정하지 않고 보정 설명만 추가'
+}
+
+// -----------------------------------------------------------------------------
+// audit schema: retention and disposal
+// -----------------------------------------------------------------------------
+
+Table audit.retention_policy [headerColor: #7C3AED] {
+  retention_policy_id bigint [pk, increment, not null]
+  policy_code varchar(50) [not null]
+  version_number integer [not null]
+  policy_name varchar(200) [not null]
+  policy_scope jsonb [not null]
+  minimum_retention_years smallint [not null]
+  effective_from timestamptz [not null]
+  effective_to timestamptz
+  policy_status audit.retention_policy_status [not null]
+  approved_by_actor_id bigint [not null]
+  approver_code_snapshot varchar(50) [not null]
+  approver_name_snapshot varchar(100) [not null]
+  approved_at timestamptz [not null]
+  recorded_at timestamptz [not null]
+
+  indexes {
+    (policy_code, version_number) [unique, name: 'uq_retention_policy_version']
+    approved_by_actor_id [name: 'ix_retention_policy_approver']
+  }
+
+  checks {
+    `version_number >= 1` [name: 'chk_retention_policy_version']
+    `minimum_retention_years >= 5` [name: 'chk_minimum_retention_years']
+    `effective_to is null or effective_to > effective_from` [name: 'chk_retention_policy_period']
+  }
+}
+
+Table audit.retention_hold [headerColor: #7C3AED] {
+  retention_hold_id bigint [pk, increment, not null]
+  target_scope_type varchar(50) [not null, note: '다형 범위 유형']
+  target_scope_snapshot jsonb [not null]
+  hold_reason text [not null]
+  placed_by_actor_id bigint [not null]
+  placer_code_snapshot varchar(50) [not null]
+  placer_name_snapshot varchar(100) [not null]
+  placed_at timestamptz [not null]
+  released_by_actor_id bigint
+  releaser_code_snapshot varchar(50)
+  releaser_name_snapshot varchar(100)
+  release_reason text
+  released_at timestamptz
+  recorded_at timestamptz [not null]
+
+  indexes {
+    placed_by_actor_id [name: 'ix_retention_hold_placer']
+    released_by_actor_id [name: 'ix_retention_hold_releaser']
+    (target_scope_type, placed_at) [name: 'ix_retention_hold_scope_time']
+  }
+
+  checks {
+    `(released_by_actor_id is null and releaser_code_snapshot is null and releaser_name_snapshot is null and release_reason is null and released_at is null) or (released_by_actor_id is not null and releaser_code_snapshot is not null and releaser_name_snapshot is not null and release_reason is not null and released_at > placed_at)` [name: 'chk_retention_hold_release']
+  }
+
+  Note: '보류 대상은 JSONB 범위 스냅샷으로 연결하며 물리 FK 없음'
+}
+
+Table audit.disposal_execution [headerColor: #7C3AED] {
+  disposal_execution_id bigint [pk, increment, not null]
+  retention_policy_id bigint [not null]
+  target_period_from timestamptz [not null]
+  target_period_to timestamptz [not null]
+  target_scope_snapshot jsonb [not null]
+  approved_by_actor_id bigint [not null]
+  approver_code_snapshot varchar(50) [not null]
+  approver_name_snapshot varchar(100) [not null]
+  approved_at timestamptz [not null]
+  executed_by_actor_id bigint
+  executor_code_snapshot varchar(50)
+  executor_name_snapshot varchar(100)
+  execution_status audit.disposal_execution_status [not null]
+  executed_at timestamptz
+  deleted_record_count bigint
+  result_snapshot jsonb
+  recorded_at timestamptz [not null]
+
+  indexes {
+    retention_policy_id [name: 'ix_disposal_execution_policy']
+    approved_by_actor_id [name: 'ix_disposal_execution_approver']
+    executed_by_actor_id [name: 'ix_disposal_execution_executor']
+  }
+
+  checks {
+    `target_period_to > target_period_from` [name: 'chk_disposal_target_period']
+    `deleted_record_count is null or deleted_record_count >= 0` [name: 'chk_disposal_deleted_count']
+    `(execution_status = 'APPROVED' and executed_by_actor_id is null and executor_code_snapshot is null and executor_name_snapshot is null and executed_at is null) or (execution_status in ('RUNNING', 'COMPLETED', 'PARTIAL', 'FAILED') and executed_by_actor_id is not null and executor_code_snapshot is not null and executor_name_snapshot is not null)` [name: 'chk_disposal_executor']
+    `(execution_status in ('COMPLETED', 'PARTIAL', 'FAILED') and executed_at is not null and deleted_record_count is not null and result_snapshot is not null) or (execution_status in ('APPROVED', 'RUNNING') and executed_at is null)` [name: 'chk_disposal_result']
+  }
+
+  Note: '실제 삭제 대상과 FK 없이 실행 범위·결과 증적을 보존'
+}
+
+// -----------------------------------------------------------------------------
+// Physical relationships: academic 6 + audit 19 = 25
+// All references are non-identifying and use RESTRICT for update/delete.
+// -----------------------------------------------------------------------------
+
+Ref A_R01: academic.department.department_id < academic.student.department_id [delete: restrict, update: restrict]
+Ref A_R02: academic.department.department_id < academic.professor.department_id [delete: restrict, update: restrict]
+Ref A_R03: academic.subject.subject_id < academic.course_offering.subject_id [delete: restrict, update: restrict]
+Ref A_R04: academic.professor.professor_id < academic.course_offering.professor_id [delete: restrict, update: restrict]
+Ref A_R05: academic.student.student_id < academic.enrollment.student_id [delete: restrict, update: restrict]
+Ref A_R06: academic.course_offering.class_id < academic.enrollment.class_id [delete: restrict, update: restrict]
+
+Ref U_R01: audit.audit_actor.actor_id < audit.audit_actor_role.actor_id [delete: restrict, update: restrict]
+Ref U_R02: audit.audit_actor.actor_id < audit.change_request.requester_actor_id [delete: restrict, update: restrict]
+Ref U_R03: audit.change_request.change_request_id - audit.change_approval.change_request_id [delete: restrict, update: restrict]
+Ref U_R04: audit.audit_actor.actor_id < audit.change_approval.approver_actor_id [delete: restrict, update: restrict]
+Ref U_R05: audit.change_request.change_request_id - audit.change_operation.change_request_id [delete: restrict, update: restrict]
+Ref U_R06: audit.audit_actor.actor_id < audit.change_operation.requester_actor_id [delete: restrict, update: restrict]
+Ref U_R07: audit.audit_actor.actor_id < audit.change_operation.initiator_actor_id [delete: restrict, update: restrict]
+Ref U_R08: audit.audit_actor.actor_id < audit.change_operation.executor_actor_id [delete: restrict, update: restrict]
+Ref U_R09: audit.change_operation.change_operation_id < audit.change_record.change_operation_id [delete: restrict, update: restrict]
+Ref U_R10: audit.audit_actor.actor_id < audit.audit_access_log.viewer_actor_id [delete: restrict, update: restrict]
+Ref U_R11: audit.audit_actor.actor_id < audit.audit_correction.corrector_actor_id [delete: restrict, update: restrict]
+Ref U_R12: audit.audit_actor.actor_id < audit.retention_policy.approved_by_actor_id [delete: restrict, update: restrict]
+Ref U_R13: audit.audit_actor.actor_id < audit.retention_hold.placed_by_actor_id [delete: restrict, update: restrict]
+Ref U_R14: audit.audit_actor.actor_id < audit.retention_hold.released_by_actor_id [delete: restrict, update: restrict]
+Ref U_R15: audit.retention_policy.retention_policy_id < audit.disposal_execution.retention_policy_id [delete: restrict, update: restrict]
+Ref U_R16: audit.audit_actor.actor_id < audit.disposal_execution.approved_by_actor_id [delete: restrict, update: restrict]
+Ref U_R17: audit.audit_actor.actor_id < audit.disposal_execution.executed_by_actor_id [delete: restrict, update: restrict]
+Ref U_R18: audit.change_record.change_record_id < audit.change_record_category.change_record_id [delete: restrict, update: restrict]
+
+// -----------------------------------------------------------------------------
+// Visual grouping
+// -----------------------------------------------------------------------------
+
+TableGroup academic_core [color: #DBEAFE, note: '학사관리 영역'] {
+  academic.department
+  academic.student
+  academic.professor
+  academic.subject
+  academic.course_offering
+  academic.enrollment
+}
+
+TableGroup audit_identity [color: #EDE9FE, note: '감사 행위자와 역할'] {
+  audit.audit_actor
+  audit.audit_actor_role
+}
+
+TableGroup audit_change [color: #EDE9FE, note: '변경 요청·승인·처리·기록'] {
+  audit.change_request
+  audit.change_approval
+  audit.change_operation
+  audit.change_record
+  audit.change_record_category
+}
+
+TableGroup audit_observation [color: #EDE9FE, note: '감사 조회와 보정'] {
+  audit.audit_access_log
+  audit.audit_correction
+}
+
+TableGroup audit_retention [color: #EDE9FE, note: '보존정책·보류·폐기'] {
+  audit.retention_policy
+  audit.retention_hold
+  audit.disposal_execution
+}
+
+Note erd_legend {
+  '''
+  ERD 범례
+  - 파란색: academic 스키마
+  - 보라색: audit 스키마
+  - 실선 Ref: 물리 FK
+  - 모든 물리 FK: 비식별 관계, ON DELETE/UPDATE RESTRICT
+  - nullable FK: 자식 기준 0..1
+  - unique FK: 1:1 또는 0..1 관계
+  - JSONB 스냅샷/검색 태그: 학사 대상과 물리 FK 없음
+  '''
+}
+
+Note logical_relationships {
+  '''
+  FK를 두지 않는 논리 관계
+  1. 학사 대상 -> 변경요청: target_type + target_id_snapshot + business_key_snapshot
+  2. 학사 대상 -> 변경기록: target_type + target_id_snapshot + business_key_snapshot
+  3. 학생 검색 -> 변경기록: student_number_tag
+  4. 강좌 검색 -> 변경기록: subject_code_tag + opening_year_tag + semester_tag + section_tag
+  5. 감사 원본 -> 감사보정: original_record_type + original_record_id
+  6. 보존보류 -> 보류 대상: target_scope_type + target_scope_snapshot
+  7. 폐기실행 -> 삭제 대상: 기간 + target_scope_snapshot
+  '''
+}
+
+Note procedural_cardinality_rules {
+  '''
+  DBML 관계선만으로 강제되지 않는 최소 카디널리티
+  - 업무행위자 1건당 역할 이력 최소 1건
+  - 변경처리 1건당 변경기록 최소 1건
+  - UPDATE 변경기록 1건당 변경항목 최소 1건
+  - 모든 변경기록 1건당 변경분류 최소 1건
+  위 규칙은 같은 트랜잭션의 프로시저/트리거에서 검증한다.
+  '''
+}

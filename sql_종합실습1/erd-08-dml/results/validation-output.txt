@@ -1,0 +1,196 @@
+CREATE DATABASE
+You are now connected to database "academic_management" as user "kimjiho".
+BEGIN
+psql:sql/01-schema.sql:13: NOTICE:  schema "academic" does not exist, skipping
+DROP SCHEMA
+CREATE SCHEMA
+SET
+CREATE TYPE
+CREATE TYPE
+CREATE TYPE
+CREATE TYPE
+CREATE TYPE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+COMMIT
+스키마와 테이블 생성 완료
+              List of relations
+  Schema  |      Name       | Type  |  Owner  
+----------+-----------------+-------+---------
+ academic | course_offering | table | kimjiho
+ academic | department      | table | kimjiho
+ academic | enrollment      | table | kimjiho
+ academic | professor       | table | kimjiho
+ academic | student         | table | kimjiho
+ academic | subject         | table | kimjiho
+(6 rows)
+
+You are now connected to database "academic_management" as user "kimjiho".
+SET
+BEGIN
+INSERT 0 10
+INSERT 0 10
+INSERT 0 12
+INSERT 0 12
+INSERT 0 12
+INSERT 0 24
+COMMIT
+샘플 데이터 입력 완료
+   table_name    | row_count 
+-----------------+-----------
+ course_offering |        12
+ department      |        10
+ enrollment      |        24
+ professor       |        10
+ student         |        12
+ subject         |        12
+(6 rows)
+
+You are now connected to database "academic_management" as user "kimjiho".
+SET
+Null display is "(NULL)".
+[문항 1] PostgreSQL 접속 및 환경 확인
+    database_name    | user_name | schema_name |                                                        postgresql_version                                                        
+---------------------+-----------+-------------+----------------------------------------------------------------------------------------------------------------------------------
+ academic_management | kimjiho   | academic    | PostgreSQL 17.10 (Homebrew) on aarch64-apple-darwin25.4.0, compiled by Apple clang version 21.0.0 (clang-2100.0.123.102), 64-bit
+(1 row)
+
+[문항 2] WHERE + ORDER BY: 재학 중인 2학년 이상 학생
+  학번   |  이름  |        학과        | 학년 
+---------+--------+--------------------+------
+ 2023007 | 윤시우 | 경영학과           |    4
+ 2024011 | 오지호 | 컴퓨터공학과       |    3
+ 2024005 | 정하준 | 인공지능학과       |    3
+ 2024006 | 한유나 | 데이터사이언스학과 |    3
+ 2025003 | 박도현 | 컴퓨터공학과       |    2
+ 2025010 | 임다은 | 경영학과           |    2
+(6 rows)
+
+[문항 3] COALESCE: 전화번호가 없으면 미등록 표시
+  학번   |  이름  |   전화번호    
+---------+--------+---------------
+ 2023007 | 윤시우 | 미등록
+ 2023008 | 송서아 | 010-1000-0008
+ 2023012 | 서아린 | 미등록
+ 2024005 | 정하준 | 010-1000-0005
+ 2024006 | 한유나 | 010-1000-0006
+ 2024011 | 오지호 | 010-1000-0011
+ 2025003 | 박도현 | 010-1000-0003
+ 2025004 | 최지우 | 미등록
+ 2025010 | 임다은 | 010-1000-0010
+ 2026001 | 김민준 | 010-1000-0001
+ 2026002 | 이서윤 | 미등록
+ 2026009 | 강주원 | 미등록
+(12 rows)
+
+[문항 4] CASE WHEN: 학년별 안내 문구 표시
+  학번   |  이름  | 학년 | 학년구분 
+---------+--------+------+----------
+ 2026001 | 김민준 |    1 | 신입생
+ 2026002 | 이서윤 |    1 | 신입생
+ 2026009 | 강주원 |    1 | 신입생
+ 2025003 | 박도현 |    2 | 재학생
+ 2025004 | 최지우 |    2 | 재학생
+ 2025010 | 임다은 |    2 | 재학생
+ 2024005 | 정하준 |    3 | 재학생
+ 2024006 | 한유나 |    3 | 재학생
+ 2024011 | 오지호 |    3 | 재학생
+ 2023007 | 윤시우 |    4 | 졸업반
+ 2023008 | 송서아 |    4 | 졸업반
+ 2023012 | 서아린 |    4 | 졸업반
+(12 rows)
+
+[문항 5] 날짜 함수: 입학 연도와 재학 기간 계산
+  학번   |  이름  |   입학일   | 입학연도 |        경과기간        
+---------+--------+------------+----------+------------------------
+ 2023007 | 윤시우 | 2023-03-02 |     2023 | 3 years 4 mons 20 days
+ 2023008 | 송서아 | 2023-03-02 |     2023 | 3 years 4 mons 20 days
+ 2023012 | 서아린 | 2023-03-02 |     2023 | 3 years 4 mons 20 days
+ 2024005 | 정하준 | 2024-03-04 |     2024 | 2 years 4 mons 18 days
+ 2024006 | 한유나 | 2024-03-04 |     2024 | 2 years 4 mons 18 days
+ 2024011 | 오지호 | 2024-03-04 |     2024 | 2 years 4 mons 18 days
+ 2025003 | 박도현 | 2025-03-04 |     2025 | 1 year 4 mons 18 days
+ 2025004 | 최지우 | 2025-03-04 |     2025 | 1 year 4 mons 18 days
+ 2025010 | 임다은 | 2025-03-04 |     2025 | 1 year 4 mons 18 days
+ 2026001 | 김민준 | 2026-03-02 |     2026 | 4 mons 20 days
+ 2026002 | 이서윤 | 2026-03-02 |     2026 | 4 mons 20 days
+ 2026009 | 강주원 | 2026-03-02 |     2026 | 4 mons 20 days
+(12 rows)
+
+[문항 6] 수강신청 교차 테이블 JOIN 조회
+  학번   | 학생명 | 교과목코드 |    교과목명    | 개설연도 | 학기 | 분반 | 담당교수 | 수강상태  | 성적 
+---------+--------+------------+----------------+----------+------+------+----------+-----------+------
+ 2023007 | 윤시우 | BA101      | 경영학원론     |     2026 |    1 | 01   | 윤민석   | ENROLLED  | B0
+ 2023007 | 윤시우 | GE101      | 대학생활과진로 |     2026 |    1 | 01   | 송하은   | ENROLLED  | A0
+ 2023008 | 송서아 | DE101      | 디자인사고     |     2026 |    1 | 01   | 강준호   | CANCELLED | 미정
+ 2023012 | 서아린 | AI201      | 인공지능개론   |     2026 |    1 | 01   | 박지훈   | CANCELLED | 미정
+ 2024005 | 정하준 | AI201      | 인공지능개론   |     2026 |    1 | 01   | 박지훈   | ENROLLED  | A+
+ 2024005 | 정하준 | AI301      | 머신러닝       |     2026 |    1 | 01   | 최예린   | ENROLLED  | A0
+ 2024005 | 정하준 | AI302      | 딥러닝         |     2026 |    1 | 01   | 최예린   | ENROLLED  | A0
+ 2024006 | 한유나 | AI301      | 머신러닝       |     2026 |    1 | 01   | 최예린   | ENROLLED  | B0
+ 2024006 | 한유나 | DS201      | 데이터분석     |     2026 |    1 | 01   | 정도윤   | ENROLLED  | B+
+ 2024006 | 한유나 | DS301      | 데이터시각화   |     2026 |    1 | 01   | 한서연   | ENROLLED  | 미정
+ 2024011 | 오지호 | CS201      | 자료구조       |     2026 |    1 | 01   | 이수진   | ENROLLED  | A+
+ 2024011 | 오지호 | CS301      | 데이터베이스   |     2026 |    1 | 01   | 김현우   | ENROLLED  | A0
+ 2025003 | 박도현 | CS201      | 자료구조       |     2026 |    1 | 01   | 이수진   | ENROLLED  | B0
+ 2025003 | 박도현 | CS301      | 데이터베이스   |     2026 |    1 | 01   | 김현우   | ENROLLED  | A0
+ 2025003 | 박도현 | CS302      | 운영체제       |     2026 |    1 | 01   | 이수진   | ENROLLED  | B+
+ 2025004 | 최지우 | DS201      | 데이터분석     |     2026 |    1 | 01   | 정도윤   | CANCELLED | 미정
+ 2025010 | 임다은 | BA101      | 경영학원론     |     2026 |    1 | 01   | 윤민석   | ENROLLED  | A0
+ 2025010 | 임다은 | GE101      | 대학생활과진로 |     2026 |    1 | 01   | 송하은   | ENROLLED  | 미정
+ 2026001 | 김민준 | CS101      | 프로그래밍기초 |     2026 |    1 | 01   | 김현우   | ENROLLED  | A0
+ 2026001 | 김민준 | CS301      | 데이터베이스   |     2026 |    1 | 01   | 김현우   | ENROLLED  | B+
+ 2026002 | 이서윤 | AI201      | 인공지능개론   |     2026 |    1 | 01   | 박지훈   | ENROLLED  | A+
+ 2026002 | 이서윤 | CS101      | 프로그래밍기초 |     2026 |    1 | 01   | 김현우   | ENROLLED  | 미정
+ 2026009 | 강주원 | CS101      | 프로그래밍기초 |     2026 |    1 | 01   | 김현우   | ENROLLED  | 미정
+ 2026009 | 강주원 | DS201      | 데이터분석     |     2026 |    1 | 01   | 정도윤   | ENROLLED  | B+
+(24 rows)
+
+[문항 7] 강좌별 현재 수강 인원과 잔여석
+ 교과목코드 |    교과목명    | 분반 | 정원 | 현재수강인원 | 잔여석 
+------------+----------------+------+------+--------------+--------
+ AI201      | 인공지능개론   | 01   |   35 |            2 |     33
+ AI301      | 머신러닝       | 01   |   25 |            2 |     23
+ AI302      | 딥러닝         | 01   |   20 |            1 |     19
+ BA101      | 경영학원론     | 01   |   40 |            2 |     38
+ CS101      | 프로그래밍기초 | 01   |   30 |            3 |     27
+ CS201      | 자료구조       | 01   |   25 |            2 |     23
+ CS301      | 데이터베이스   | 01   |   30 |            3 |     27
+ CS302      | 운영체제       | 01   |   25 |            1 |     24
+ DE101      | 디자인사고     | 01   |   20 |            0 |     20
+ DS201      | 데이터분석     | 01   |   30 |            2 |     28
+ DS301      | 데이터시각화   | 01   |   20 |            1 |     19
+ GE101      | 대학생활과진로 | 01   |   50 |            2 |     48
+(12 rows)
+
+[문항 8] 제약조건 확인용 테이블 목록과 건수
+   table_name    
+-----------------
+ course_offering
+ department
+ enrollment
+ professor
+ student
+ subject
+(6 rows)
+
+   table_name    | row_count 
+-----------------+-----------
+ course_offering |        12
+ department      |        10
+ enrollment      |        24
+ professor       |        10
+ student         |        12
+ subject         |        12
+(6 rows)
+
