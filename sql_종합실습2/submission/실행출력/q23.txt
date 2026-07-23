@@ -1,0 +1,76 @@
+-- ------------------------------------------------------------
+-- 문항 23. 학과별 GPA 상위 3명 (Window Function)
+--   - ROW_NUMBER() OVER (PARTITION BY major ORDER BY gpa DESC, student_id)
+--   - RANK() / DENSE_RANK() 동점 처리 비교
+--   - COUNT() OVER (PARTITION BY major) → total_in_major
+--   기대 행 수: 18 (6개 학과 × 3명)
+-- ------------------------------------------------------------
+-- 23-1. CTE 방식
+WITH ranked AS (
+    SELECT student_id, name, major, gpa,
+           ROW_NUMBER()  OVER (PARTITION BY major ORDER BY gpa DESC, student_id) AS row_no,
+           RANK()        OVER (PARTITION BY major ORDER BY gpa DESC)             AS rank_no,
+           DENSE_RANK()  OVER (PARTITION BY major ORDER BY gpa DESC)             AS dense_rank_no,
+           COUNT(*)      OVER (PARTITION BY major)                               AS total_in_major
+    FROM lab.student
+)
+SELECT student_id, name, major, gpa, row_no, rank_no, dense_rank_no, total_in_major
+FROM ranked
+WHERE row_no <= 3
+ORDER BY major, row_no;
+ student_id |    name     | major | gpa  | row_no | rank_no | dense_rank_no | total_in_major 
+------------+-------------+-------+------+--------+---------+---------------+----------------
+         29 | Student_29  | BIO   | 4.90 |      1 |       1 |             1 |            196
+         59 | Student_59  | BIO   | 4.90 |      2 |       1 |             1 |            196
+         89 | Student_89  | BIO   | 4.90 |      3 |       1 |             1 |            196
+         28 | Student_28  | CE    | 4.80 |      1 |       1 |             1 |            196
+         58 | Student_58  | CE    | 4.80 |      2 |       1 |             1 |            196
+         88 | Student_88  | CE    | 4.80 |      3 |       1 |             1 |            196
+         25 | Student_25  | CS    | 4.50 |      1 |       1 |             1 |            196
+         55 | Student_55  | CS    | 4.50 |      2 |       1 |             1 |            196
+         85 | Student_85  | CS    | 4.50 |      3 |       1 |             1 |            196
+         26 | Student_26  | EE    | 4.60 |      1 |       1 |             1 |            196
+         56 | Student_56  | EE    | 4.60 |      2 |       1 |             1 |            196
+         86 | Student_86  | EE    | 4.60 |      3 |       1 |             1 |            196
+        989 | Student_989 | HR    | 4.90 |      1 |       1 |             1 |             20
+        988 | Student_988 | HR    | 4.80 |      2 |       2 |             2 |             20
+        987 | Student_987 | HR    | 4.70 |      3 |       3 |             3 |             20
+         27 | Student_27  | ME    | 4.70 |      1 |       1 |             1 |            196
+         57 | Student_57  | ME    | 4.70 |      2 |       1 |             1 |            196
+         87 | Student_87  | ME    | 4.70 |      3 |       1 |             1 |            196
+(18개 행)
+
+-- 23-2. 서브쿼리(인라인 뷰) 방식
+SELECT student_id, name, major, gpa, row_no, rank_no, dense_rank_no, total_in_major
+FROM (
+    SELECT student_id, name, major, gpa,
+           ROW_NUMBER()  OVER (PARTITION BY major ORDER BY gpa DESC, student_id) AS row_no,
+           RANK()        OVER (PARTITION BY major ORDER BY gpa DESC)             AS rank_no,
+           DENSE_RANK()  OVER (PARTITION BY major ORDER BY gpa DESC)             AS dense_rank_no,
+           COUNT(*)      OVER (PARTITION BY major)                               AS total_in_major
+    FROM lab.student
+) ranked
+WHERE row_no <= 3
+ORDER BY major, row_no;
+ student_id |    name     | major | gpa  | row_no | rank_no | dense_rank_no | total_in_major 
+------------+-------------+-------+------+--------+---------+---------------+----------------
+         29 | Student_29  | BIO   | 4.90 |      1 |       1 |             1 |            196
+         59 | Student_59  | BIO   | 4.90 |      2 |       1 |             1 |            196
+         89 | Student_89  | BIO   | 4.90 |      3 |       1 |             1 |            196
+         28 | Student_28  | CE    | 4.80 |      1 |       1 |             1 |            196
+         58 | Student_58  | CE    | 4.80 |      2 |       1 |             1 |            196
+         88 | Student_88  | CE    | 4.80 |      3 |       1 |             1 |            196
+         25 | Student_25  | CS    | 4.50 |      1 |       1 |             1 |            196
+         55 | Student_55  | CS    | 4.50 |      2 |       1 |             1 |            196
+         85 | Student_85  | CS    | 4.50 |      3 |       1 |             1 |            196
+         26 | Student_26  | EE    | 4.60 |      1 |       1 |             1 |            196
+         56 | Student_56  | EE    | 4.60 |      2 |       1 |             1 |            196
+         86 | Student_86  | EE    | 4.60 |      3 |       1 |             1 |            196
+        989 | Student_989 | HR    | 4.90 |      1 |       1 |             1 |             20
+        988 | Student_988 | HR    | 4.80 |      2 |       2 |             2 |             20
+        987 | Student_987 | HR    | 4.70 |      3 |       3 |             3 |             20
+         27 | Student_27  | ME    | 4.70 |      1 |       1 |             1 |            196
+         57 | Student_57  | ME    | 4.70 |      2 |       1 |             1 |            196
+         87 | Student_87  | ME    | 4.70 |      3 |       1 |             1 |            196
+(18개 행)
+

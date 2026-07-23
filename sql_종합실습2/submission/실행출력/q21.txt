@@ -1,0 +1,54 @@
+-- ------------------------------------------------------------
+-- 문항 21. 학과별·GPA 구간별 인원 집계 + 소계/총계 (ROLLUP)
+--   - gpa_tier 파생: 3.0 미만 / 3.0~3.5 / 3.5 초과
+--   - GROUP BY ROLLUP(major, gpa_tier)
+--   - GROUPING(major)로 총계 행에 '전체' 라벨
+--   - major, gpa_tier 순 정렬 + 소계·총계는 하단 배치
+--   기대 행 수: 25 (상세 18 + 학과 소계 6 + 총계 1), 총계 1,000명
+-- ------------------------------------------------------------
+WITH s AS (
+    SELECT major,
+           CASE WHEN gpa < 3.0  THEN '3.0 미만'
+                WHEN gpa <= 3.5 THEN '3.0~3.5'
+                ELSE                 '3.5 초과'
+           END AS gpa_tier
+    FROM lab.student
+)
+SELECT CASE WHEN GROUPING(major)    = 1 THEN '전체'   ELSE major    END AS major,
+       CASE WHEN GROUPING(gpa_tier) = 1 THEN '(소계)' ELSE gpa_tier END AS gpa_tier,
+       COUNT(*) AS student_count
+FROM s
+GROUP BY ROLLUP(major, gpa_tier)
+ORDER BY GROUPING(major),          -- 총계(전체)를 맨 하단으로
+         major,
+         GROUPING(gpa_tier),       -- 각 학과의 소계를 해당 학과 하단으로
+         gpa_tier;
+ major | gpa_tier | student_count 
+-------+----------+---------------
+ BIO   | 3.0 미만 |            66
+ BIO   | 3.0~3.5  |            33
+ BIO   | 3.5 초과 |            97
+ BIO   | (소계)   |           196
+ CE    | 3.0 미만 |            66
+ CE    | 3.0~3.5  |            33
+ CE    | 3.5 초과 |            97
+ CE    | (소계)   |           196
+ CS    | 3.0 미만 |            65
+ CS    | 3.0~3.5  |            66
+ CS    | 3.5 초과 |            65
+ CS    | (소계)   |           196
+ EE    | 3.0 미만 |            66
+ EE    | 3.0~3.5  |            33
+ EE    | 3.5 초과 |            97
+ EE    | (소계)   |           196
+ HR    | 3.0 미만 |            10
+ HR    | 3.0~3.5  |             1
+ HR    | 3.5 초과 |             9
+ HR    | (소계)   |            20
+ ME    | 3.0 미만 |            66
+ ME    | 3.0~3.5  |            33
+ ME    | 3.5 초과 |            97
+ ME    | (소계)   |           196
+ 전체  | (소계)   |          1000
+(25개 행)
+

@@ -1,0 +1,179 @@
+=== 종합실습2 2단계 (문항 11~20) 실행 결과 검산 — 2026-07-23 14:18 ===
+
+--- 문항 11: DB 미수강 학생 (기대 893행) ---
+ count 
+-------
+   893
+(1개 행)
+
+ db_수강학생 
+-------------
+         107
+(1개 행)
+
+--- 문항 12: course_owner 생성 + 리포트 ---
+NOTICE:  table "course_owner" does not exist, skipping
+DROP TABLE
+ERROR:  permission denied for table emp
+ERROR:  relation "lab.course_owner" does not exist
+줄 1: INSERT INTO lab.course_owner (course, manager_id) SELECT cou...
+                  ^
+ERROR:  relation "lab.course_owner" does not exist
+줄 1: ..._id) AS enroll_count, m.name AS manager_name FROM lab.course...
+                                                           ^
+--- 문항 13: CROSS JOIN 추천 후보 100건 ---
+ 전체조합 
+----------
+    23000
+(1개 행)
+
+ student_id |   name    |  course   
+------------+-----------+-----------
+          1 | Student_1 | AI
+          1 | Student_1 | Course_1
+          1 | Student_1 | Course_10
+          1 | Student_1 | Course_11
+          1 | Student_1 | Course_12
+(5개 행)
+
+--- 문항 14: 스칼라 서브쿼리 학과명 (기대 1,000행) ---
+ count 
+-------
+  1000
+(1개 행)
+
+ student_id |   name    | major_name 
+------------+-----------+------------
+          1 | Student_1 | EE
+          2 | Student_2 | ME
+          3 | Student_3 | CE
+          4 | Student_4 | BIO
+          5 | Student_5 | CS
+(5개 행)
+
+--- 문항 15: 전체 평균 GPA 초과 (기대 495행) ---
+ 전체평균 
+----------
+    3.441
+(1개 행)
+
+ count 
+-------
+   495
+(1개 행)
+
+--- 문항 16: 학과 평균 초과 (상관 서브쿼리) ---
+ major | 학과평균 
+-------+----------
+ BIO   |    3.640
+ CE    |    3.540
+ CS    |    3.250
+ EE    |    3.340
+ HR    |    3.400
+ ME    |    3.440
+(6개 행)
+
+ count 
+-------
+   495
+(1개 행)
+
+ major | 초과학생수 
+-------+------------
+ BIO   |         97
+ CE    |         97
+ CS    |         98
+ EE    |         97
+ HR    |          9
+ ME    |         97
+(6개 행)
+
+--- 문항 17: EXISTS (기대 900행, 문항6 일치) ---
+ count 
+-------
+   900
+(1개 행)
+
+--- 문항 18: NOT EXISTS (기대 100행, 문항5 일치) ---
+ count 
+-------
+   100
+(1개 행)
+
+--- 문항 19: ANY/ALL 비교 (HR gpa min/max 확인) ---
+ hr_min | hr_max 
+--------+--------
+   2.00 |   4.90
+(1개 행)
+
+ any_초과 
+----------
+      967
+(1개 행)
+
+ all_초과 
+----------
+        0
+(1개 행)
+
+--- 문항 20: UNION (CS ∪ DB수강) ---
+ cs_학생 
+---------
+     196
+(1개 행)
+
+ count 
+-------
+   290
+(1개 행)
+
+ 교집합 
+--------
+     13
+(1개 행)
+
+--- 문항 12 (재실행): course_owner 생성 + 리포트 ---
+NOTICE:  table "course_owner" does not exist, skipping
+DROP TABLE
+CREATE TABLE
+INSERT 0 23
+  course   | enroll_count | manager_name 
+-----------+--------------+--------------
+ AI        |            1 | Mgr_2
+ Course_1  |          144 | Mgr_3
+ Course_10 |           96 | Mgr_4
+ Course_11 |          144 | Mgr_5
+ Course_12 |           48 | Mgr_6
+ Course_13 |           96 | Mgr_7
+ Course_14 |           96 | Mgr_8
+ Course_15 |          144 | Mgr_9
+ Course_16 |           96 | Mgr_10
+ Course_17 |          144 | Mgr_11
+ Course_18 |           96 | Mgr_2
+ Course_19 |          144 | Mgr_3
+ Course_2  |           47 | Mgr_4
+ Course_20 |           96 | Mgr_5
+ Course_3  |           94 | Mgr_6
+ Course_4  |           94 | Mgr_7
+ Course_5  |          141 | Mgr_8
+ Course_6  |           94 | Mgr_9
+ Course_7  |          141 | Mgr_10
+ Course_8  |           94 | Mgr_11
+ Course_9  |          144 | Mgr_2
+ DB        |          107 | Mgr_3
+ ML        |            1 | Mgr_4
+(23개 행)
+
+
+============================================================
+[제출 시 언급 포인트] 문항 12 권한 이슈
+------------------------------------------------------------
+- 최초 실행 시 skala_user로 course_owner의 FK(REFERENCES lab.emp) 생성이
+  "ERROR: permission denied for table emp"로 실패함.
+- 원인: 테이블 소유자가 관리자 계정이고, 초기 스크립트의 기본 권한 부여
+  (SELECT/INSERT/UPDATE/DELETE)에는 REFERENCES 권한이 포함되지 않음.
+  PostgreSQL에서 FK를 만들려면 참조 대상 테이블에 대한 REFERENCES 권한이 필요.
+- 조치: 관리자 계정에서 아래를 실행한 뒤 재실행하여 성공.
+    GRANT REFERENCES ON lab.emp TO skala_user;
+- 위 "문항 12 (재실행)" 결과가 권한 부여 후의 정상 실행 결과임.
+============================================================

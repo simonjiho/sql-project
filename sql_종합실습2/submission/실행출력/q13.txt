@@ -1,0 +1,113 @@
+-- ------------------------------------------------------------
+-- 문항 13. 학생 × 과목 전체 조합(추천 후보), 샘플 100건만
+--   CROSS JOIN 폭발 주의: 1,000명 × 23과목 = 23,000 조합 → LIMIT 100
+-- ------------------------------------------------------------
+SELECT s.student_id, s.name, c.course
+FROM lab.student s
+CROSS JOIN (SELECT DISTINCT course FROM lab.enroll) c
+ORDER BY s.student_id, c.course
+LIMIT 100;
+ student_id |   name    |  course   
+------------+-----------+-----------
+          1 | Student_1 | AI
+          1 | Student_1 | Course_1
+          1 | Student_1 | Course_10
+          1 | Student_1 | Course_11
+          1 | Student_1 | Course_12
+          1 | Student_1 | Course_13
+          1 | Student_1 | Course_14
+          1 | Student_1 | Course_15
+          1 | Student_1 | Course_16
+          1 | Student_1 | Course_17
+          1 | Student_1 | Course_18
+          1 | Student_1 | Course_19
+          1 | Student_1 | Course_2
+          1 | Student_1 | Course_20
+          1 | Student_1 | Course_3
+          1 | Student_1 | Course_4
+          1 | Student_1 | Course_5
+          1 | Student_1 | Course_6
+          1 | Student_1 | Course_7
+          1 | Student_1 | Course_8
+          1 | Student_1 | Course_9
+          1 | Student_1 | DB
+          1 | Student_1 | ML
+          2 | Student_2 | AI
+          2 | Student_2 | Course_1
+          2 | Student_2 | Course_10
+          2 | Student_2 | Course_11
+          2 | Student_2 | Course_12
+          2 | Student_2 | Course_13
+          2 | Student_2 | Course_14
+          2 | Student_2 | Course_15
+          2 | Student_2 | Course_16
+          2 | Student_2 | Course_17
+          2 | Student_2 | Course_18
+          2 | Student_2 | Course_19
+          2 | Student_2 | Course_2
+          2 | Student_2 | Course_20
+          2 | Student_2 | Course_3
+          2 | Student_2 | Course_4
+          2 | Student_2 | Course_5
+          2 | Student_2 | Course_6
+          2 | Student_2 | Course_7
+          2 | Student_2 | Course_8
+          2 | Student_2 | Course_9
+          2 | Student_2 | DB
+          2 | Student_2 | ML
+          3 | Student_3 | AI
+          3 | Student_3 | Course_1
+          3 | Student_3 | Course_10
+          3 | Student_3 | Course_11
+          3 | Student_3 | Course_12
+          3 | Student_3 | Course_13
+          3 | Student_3 | Course_14
+          3 | Student_3 | Course_15
+          3 | Student_3 | Course_16
+          3 | Student_3 | Course_17
+          3 | Student_3 | Course_18
+          3 | Student_3 | Course_19
+          3 | Student_3 | Course_2
+          3 | Student_3 | Course_20
+          3 | Student_3 | Course_3
+          3 | Student_3 | Course_4
+          3 | Student_3 | Course_5
+          3 | Student_3 | Course_6
+          3 | Student_3 | Course_7
+          3 | Student_3 | Course_8
+          3 | Student_3 | Course_9
+          3 | Student_3 | DB
+          3 | Student_3 | ML
+          4 | Student_4 | AI
+          4 | Student_4 | Course_1
+          4 | Student_4 | Course_10
+          4 | Student_4 | Course_11
+          4 | Student_4 | Course_12
+          4 | Student_4 | Course_13
+          4 | Student_4 | Course_14
+          4 | Student_4 | Course_15
+          4 | Student_4 | Course_16
+          4 | Student_4 | Course_17
+          4 | Student_4 | Course_18
+          4 | Student_4 | Course_19
+          4 | Student_4 | Course_2
+          4 | Student_4 | Course_20
+          4 | Student_4 | Course_3
+          4 | Student_4 | Course_4
+          4 | Student_4 | Course_5
+          4 | Student_4 | Course_6
+          4 | Student_4 | Course_7
+          4 | Student_4 | Course_8
+          4 | Student_4 | Course_9
+          4 | Student_4 | DB
+          4 | Student_4 | ML
+          5 | Student_5 | AI
+          5 | Student_5 | Course_1
+          5 | Student_5 | Course_10
+          5 | Student_5 | Course_11
+          5 | Student_5 | Course_12
+          5 | Student_5 | Course_13
+          5 | Student_5 | Course_14
+          5 | Student_5 | Course_15
+(100개 행)
+

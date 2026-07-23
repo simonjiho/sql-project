@@ -1,0 +1,116 @@
+-- ------------------------------------------------------------
+-- 문항 18. 한 번도 수강하지 않은 학생 (NOT EXISTS)
+--   기대 행 수: 100 (문항 5의 Anti-Join과 동일 결과)
+-- ------------------------------------------------------------
+SELECT s.student_id, s.name
+FROM lab.student s
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM lab.enroll e
+    WHERE e.student_id = s.student_id
+)
+ORDER BY s.student_id;
+ student_id |     name     
+------------+--------------
+         10 | Student_10
+         20 | Student_20
+         30 | Student_30
+         40 | Student_40
+         50 | Student_50
+         60 | Student_60
+         70 | Student_70
+         80 | Student_80
+         90 | Student_90
+        100 | Student_100
+        110 | Student_110
+        120 | Student_120
+        130 | Student_130
+        140 | Student_140
+        150 | Student_150
+        160 | Student_160
+        170 | Student_170
+        180 | Student_180
+        190 | Student_190
+        200 | Student_200
+        210 | Student_210
+        220 | Student_220
+        230 | Student_230
+        240 | Student_240
+        250 | Student_250
+        260 | Student_260
+        270 | Student_270
+        280 | Student_280
+        290 | Student_290
+        300 | Student_300
+        310 | Student_310
+        320 | Student_320
+        330 | Student_330
+        340 | Student_340
+        350 | Student_350
+        360 | Student_360
+        370 | Student_370
+        380 | Student_380
+        390 | Student_390
+        400 | Student_400
+        410 | Student_410
+        420 | Student_420
+        430 | Student_430
+        440 | Student_440
+        450 | Student_450
+        460 | Student_460
+        470 | Student_470
+        480 | Student_480
+        490 | Student_490
+        500 | Student_500
+        510 | Student_510
+        520 | Student_520
+        530 | Student_530
+        540 | Student_540
+        550 | Student_550
+        560 | Student_560
+        570 | Student_570
+        580 | Student_580
+        590 | Student_590
+        600 | Student_600
+        610 | Student_610
+        620 | Student_620
+        630 | Student_630
+        640 | Student_640
+        650 | Student_650
+        660 | Student_660
+        670 | Student_670
+        680 | Student_680
+        690 | Student_690
+        700 | Student_700
+        710 | Student_710
+        720 | Student_720
+        730 | Student_730
+        740 | Student_740
+        750 | Student_750
+        760 | Student_760
+        770 | Student_770
+        780 | Student_780
+        790 | Student_790
+        800 | Student_800
+        810 | Student_810
+        820 | Student_820
+        830 | Student_830
+        840 | Student_840
+        850 | Student_850
+        860 | Student_860
+        870 | Student_870
+        880 | Student_880
+        890 | Student_890
+        900 | Student_900
+        910 | Student_910
+        920 | Student_920
+        930 | Student_930
+        940 | Student_940
+        950 | Student_950
+        960 | Student_960
+        970 | Student_970
+        980 | Student_980
+        990 | Student_990
+       1000 | Student_1000
+(100개 행)
+

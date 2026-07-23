@@ -1,0 +1,151 @@
+=== 종합실습2 1단계 (문항 1~10) 실행 결과 검산 — 2026-07-23 14:05 ===
+
+--- 문항 1: INNER JOIN (기대 2,300행) ---
+ rows 
+------
+ 2300
+(1개 행)
+
+ student_id |   name    |  course  | grade 
+------------+-----------+----------+-------
+          1 | Student_1 | Course_3 | C
+          1 | Student_1 | Course_4 | D
+          1 | Student_1 | Course_5 | A
+          2 | Student_2 | Course_4 | D
+          2 | Student_2 | Course_5 | A
+(5개 행)
+
+--- 문항 2: LEFT JOIN (기대 2,400행) ---
+ count 
+-------
+  2400
+(1개 행)
+
+ student_id |    name    | course 
+------------+------------+--------
+         10 | Student_10 | 
+         20 | Student_20 | 
+         30 | Student_30 | 
+(3개 행)
+
+--- 문항 3: RIGHT JOIN (기대 2,302행 / 고아 수강 name NULL) ---
+ count 
+-------
+  2302
+(1개 행)
+
+ student_id | course | grade | name 
+------------+--------+-------+------
+       1001 | AI     | A     | 
+       1010 | ML     | B     | 
+(2개 행)
+
+--- 문항 4: FULL OUTER JOIN (기대 2,402행) ---
+ count 
+-------
+  2402
+(1개 행)
+
+ orphan_rows | no_enroll_rows 
+-------------+----------------
+           2 |            100
+(1개 행)
+
+--- 문항 5: Anti-Join (기대 100행) ---
+ count 
+-------
+   100
+(1개 행)
+
+ student_id |    name    
+------------+------------
+         10 | Student_10
+         20 | Student_20
+         30 | Student_30
+         40 | Student_40
+         50 | Student_50
+(5개 행)
+
+ not_exists_check 
+------------------
+              100
+(1개 행)
+
+--- 문항 6: Semi-Join DISTINCT (기대 900행) ---
+ count 
+-------
+   900
+(1개 행)
+
+--- 문항 7: 고객별 주문건수/총액 (기대 500행, 전원 6건) ---
+ rows | min_cnt | max_cnt 
+------+---------+---------
+  500 |       6 |       6
+(1개 행)
+
+ customer_id | customer_name | order_count | total_amount 
+-------------+---------------+-------------+--------------
+           1 | Customer_1    |           6 |     16530.00
+           2 | Customer_2    |           6 |     12608.06
+           3 | Customer_3    |           6 |     12686.12
+           4 | Customer_4    |           6 |     12764.18
+           5 | Customer_5    |           6 |     12842.24
+(5개 행)
+
+--- 문항 8: 총액 상위 10명 ---
+ customer_id | customer_name | total_amount 
+-------------+---------------+--------------
+         154 | Customer_154  |     19467.18
+         153 | Customer_153  |     19389.12
+         152 | Customer_152  |     19311.06
+         151 | Customer_151  |     19233.00
+         150 | Customer_150  |     19154.94
+         149 | Customer_149  |     19076.88
+         148 | Customer_148  |     18998.82
+         147 | Customer_147  |     18920.76
+         146 | Customer_146  |     18842.70
+         145 | Customer_145  |     18764.64
+(10개 행)
+
+--- 문항 9: SELF JOIN (기대 311행, CEO NULL) ---
+ count 
+-------
+   311
+(1개 행)
+
+ emp_id | name  | manager_name 
+--------+-------+--------------
+      1 | CEO   | 
+      2 | Mgr_2 | CEO
+      3 | Mgr_3 | CEO
+      4 | Mgr_4 | CEO
+      5 | Mgr_5 | CEO
+(5개 행)
+
+--- 문항 10: 과목 분포 (기대 22행) ---
+  course   | student_count 
+-----------+---------------
+ Course_1  |           144
+ Course_10 |            96
+ Course_11 |           144
+ Course_12 |            48
+ Course_13 |            96
+ Course_14 |            96
+ Course_15 |           144
+ Course_16 |            96
+ Course_17 |           144
+ Course_18 |            96
+ Course_19 |           144
+ Course_2  |            47
+ Course_20 |            96
+ Course_3  |            94
+ Course_4  |            94
+ Course_5  |           141
+ Course_6  |            94
+ Course_7  |           141
+ Course_8  |            94
+ Course_9  |           144
+ DB        |           107
+           |           100
+(22개 행)
+

@@ -1,0 +1,26 @@
+-- ------------------------------------------------------------
+-- 문항 8. 총액 상위 10명과 금액
+--   동점 대비 customer_id 오름차순을 2차 정렬로 명시
+-- ------------------------------------------------------------
+SELECT c.customer_id, c.customer_name,
+       SUM(o.amount) AS total_amount
+FROM lab.customers c
+INNER JOIN lab.orders o
+        ON o.customer_id = c.customer_id
+GROUP BY c.customer_id, c.customer_name
+ORDER BY total_amount DESC, c.customer_id
+LIMIT 10;
+ customer_id | customer_name | total_amount 
+-------------+---------------+--------------
+         154 | Customer_154  |     19467.18
+         153 | Customer_153  |     19389.12
+         152 | Customer_152  |     19311.06
+         151 | Customer_151  |     19233.00
+         150 | Customer_150  |     19154.94
+         149 | Customer_149  |     19076.88
+         148 | Customer_148  |     18998.82
+         147 | Customer_147  |     18920.76
+         146 | Customer_146  |     18842.70
+         145 | Customer_145  |     18764.64
+(10개 행)
+

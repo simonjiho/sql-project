@@ -1,0 +1,361 @@
+-- ------------------------------------------------------------
+-- 문항 22. WITH RECURSIVE — 조직 계층 경로와 깊이
+--   - depth: 0=CEO, 1=매니저, 2=개발자
+--   - path 예: 'CEO > Mgr_2 > Dev_15'
+--   기대 행 수: 311
+--   ※ 실측 depth 분포는 0:1 / 1:40 / 2:270 —
+--     적재 수식상 Dev 30명이 CEO 직속으로 배정되어 슬라이드 배경(1/10/300)과 다름
+-- ------------------------------------------------------------
+WITH RECURSIVE org AS (
+    SELECT emp_id, name, 0 AS depth, name::text AS path
+    FROM lab.emp
+    WHERE manager_id IS NULL
+    UNION ALL
+    SELECT e.emp_id, e.name, o.depth + 1, o.path || ' > ' || e.name
+    FROM lab.emp e
+    JOIN org o ON e.manager_id = o.emp_id
+)
+SELECT emp_id, name, depth, path
+FROM org
+ORDER BY path;
+ emp_id |  name   | depth |          path          
+--------+---------+-------+------------------------
+      1 | CEO     |     0 | CEO
+    102 | Dev_102 |     1 | CEO > Dev_102
+    112 | Dev_112 |     1 | CEO > Dev_112
+     12 | Dev_12  |     1 | CEO > Dev_12
+    122 | Dev_122 |     1 | CEO > Dev_122
+    132 | Dev_132 |     1 | CEO > Dev_132
+    142 | Dev_142 |     1 | CEO > Dev_142
+    152 | Dev_152 |     1 | CEO > Dev_152
+    162 | Dev_162 |     1 | CEO > Dev_162
+    172 | Dev_172 |     1 | CEO > Dev_172
+    182 | Dev_182 |     1 | CEO > Dev_182
+    192 | Dev_192 |     1 | CEO > Dev_192
+    202 | Dev_202 |     1 | CEO > Dev_202
+    212 | Dev_212 |     1 | CEO > Dev_212
+     22 | Dev_22  |     1 | CEO > Dev_22
+    222 | Dev_222 |     1 | CEO > Dev_222
+    232 | Dev_232 |     1 | CEO > Dev_232
+    242 | Dev_242 |     1 | CEO > Dev_242
+    252 | Dev_252 |     1 | CEO > Dev_252
+    262 | Dev_262 |     1 | CEO > Dev_262
+    272 | Dev_272 |     1 | CEO > Dev_272
+    282 | Dev_282 |     1 | CEO > Dev_282
+    292 | Dev_292 |     1 | CEO > Dev_292
+    302 | Dev_302 |     1 | CEO > Dev_302
+     32 | Dev_32  |     1 | CEO > Dev_32
+     42 | Dev_42  |     1 | CEO > Dev_42
+     52 | Dev_52  |     1 | CEO > Dev_52
+     62 | Dev_62  |     1 | CEO > Dev_62
+     72 | Dev_72  |     1 | CEO > Dev_72
+     82 | Dev_82  |     1 | CEO > Dev_82
+     92 | Dev_92  |     1 | CEO > Dev_92
+     10 | Mgr_10  |     1 | CEO > Mgr_10
+    101 | Dev_101 |     2 | CEO > Mgr_10 > Dev_101
+    111 | Dev_111 |     2 | CEO > Mgr_10 > Dev_111
+    121 | Dev_121 |     2 | CEO > Mgr_10 > Dev_121
+    131 | Dev_131 |     2 | CEO > Mgr_10 > Dev_131
+    141 | Dev_141 |     2 | CEO > Mgr_10 > Dev_141
+    151 | Dev_151 |     2 | CEO > Mgr_10 > Dev_151
+    161 | Dev_161 |     2 | CEO > Mgr_10 > Dev_161
+    171 | Dev_171 |     2 | CEO > Mgr_10 > Dev_171
+    181 | Dev_181 |     2 | CEO > Mgr_10 > Dev_181
+    191 | Dev_191 |     2 | CEO > Mgr_10 > Dev_191
+    201 | Dev_201 |     2 | CEO > Mgr_10 > Dev_201
+     21 | Dev_21  |     2 | CEO > Mgr_10 > Dev_21
+    211 | Dev_211 |     2 | CEO > Mgr_10 > Dev_211
+    221 | Dev_221 |     2 | CEO > Mgr_10 > Dev_221
+    231 | Dev_231 |     2 | CEO > Mgr_10 > Dev_231
+    241 | Dev_241 |     2 | CEO > Mgr_10 > Dev_241
+    251 | Dev_251 |     2 | CEO > Mgr_10 > Dev_251
+    261 | Dev_261 |     2 | CEO > Mgr_10 > Dev_261
+    271 | Dev_271 |     2 | CEO > Mgr_10 > Dev_271
+    281 | Dev_281 |     2 | CEO > Mgr_10 > Dev_281
+    291 | Dev_291 |     2 | CEO > Mgr_10 > Dev_291
+    301 | Dev_301 |     2 | CEO > Mgr_10 > Dev_301
+     31 | Dev_31  |     2 | CEO > Mgr_10 > Dev_31
+    311 | Dev_311 |     2 | CEO > Mgr_10 > Dev_311
+     41 | Dev_41  |     2 | CEO > Mgr_10 > Dev_41
+     51 | Dev_51  |     2 | CEO > Mgr_10 > Dev_51
+     61 | Dev_61  |     2 | CEO > Mgr_10 > Dev_61
+     71 | Dev_71  |     2 | CEO > Mgr_10 > Dev_71
+     81 | Dev_81  |     2 | CEO > Mgr_10 > Dev_81
+     91 | Dev_91  |     2 | CEO > Mgr_10 > Dev_91
+     11 | Mgr_11  |     1 | CEO > Mgr_11
+      2 | Mgr_2   |     1 | CEO > Mgr_2
+    103 | Dev_103 |     2 | CEO > Mgr_2 > Dev_103
+    113 | Dev_113 |     2 | CEO > Mgr_2 > Dev_113
+    123 | Dev_123 |     2 | CEO > Mgr_2 > Dev_123
+     13 | Dev_13  |     2 | CEO > Mgr_2 > Dev_13
+    133 | Dev_133 |     2 | CEO > Mgr_2 > Dev_133
+    143 | Dev_143 |     2 | CEO > Mgr_2 > Dev_143
+    153 | Dev_153 |     2 | CEO > Mgr_2 > Dev_153
+    163 | Dev_163 |     2 | CEO > Mgr_2 > Dev_163
+    173 | Dev_173 |     2 | CEO > Mgr_2 > Dev_173
+    183 | Dev_183 |     2 | CEO > Mgr_2 > Dev_183
+    193 | Dev_193 |     2 | CEO > Mgr_2 > Dev_193
+    203 | Dev_203 |     2 | CEO > Mgr_2 > Dev_203
+    213 | Dev_213 |     2 | CEO > Mgr_2 > Dev_213
+    223 | Dev_223 |     2 | CEO > Mgr_2 > Dev_223
+     23 | Dev_23  |     2 | CEO > Mgr_2 > Dev_23
+    233 | Dev_233 |     2 | CEO > Mgr_2 > Dev_233
+    243 | Dev_243 |     2 | CEO > Mgr_2 > Dev_243
+    253 | Dev_253 |     2 | CEO > Mgr_2 > Dev_253
+    263 | Dev_263 |     2 | CEO > Mgr_2 > Dev_263
+    273 | Dev_273 |     2 | CEO > Mgr_2 > Dev_273
+    283 | Dev_283 |     2 | CEO > Mgr_2 > Dev_283
+    293 | Dev_293 |     2 | CEO > Mgr_2 > Dev_293
+    303 | Dev_303 |     2 | CEO > Mgr_2 > Dev_303
+     33 | Dev_33  |     2 | CEO > Mgr_2 > Dev_33
+     43 | Dev_43  |     2 | CEO > Mgr_2 > Dev_43
+     53 | Dev_53  |     2 | CEO > Mgr_2 > Dev_53
+     63 | Dev_63  |     2 | CEO > Mgr_2 > Dev_63
+     73 | Dev_73  |     2 | CEO > Mgr_2 > Dev_73
+     83 | Dev_83  |     2 | CEO > Mgr_2 > Dev_83
+     93 | Dev_93  |     2 | CEO > Mgr_2 > Dev_93
+      3 | Mgr_3   |     1 | CEO > Mgr_3
+    104 | Dev_104 |     2 | CEO > Mgr_3 > Dev_104
+    114 | Dev_114 |     2 | CEO > Mgr_3 > Dev_114
+    124 | Dev_124 |     2 | CEO > Mgr_3 > Dev_124
+    134 | Dev_134 |     2 | CEO > Mgr_3 > Dev_134
+     14 | Dev_14  |     2 | CEO > Mgr_3 > Dev_14
+    144 | Dev_144 |     2 | CEO > Mgr_3 > Dev_144
+    154 | Dev_154 |     2 | CEO > Mgr_3 > Dev_154
+    164 | Dev_164 |     2 | CEO > Mgr_3 > Dev_164
+    174 | Dev_174 |     2 | CEO > Mgr_3 > Dev_174
+    184 | Dev_184 |     2 | CEO > Mgr_3 > Dev_184
+    194 | Dev_194 |     2 | CEO > Mgr_3 > Dev_194
+    204 | Dev_204 |     2 | CEO > Mgr_3 > Dev_204
+    214 | Dev_214 |     2 | CEO > Mgr_3 > Dev_214
+    224 | Dev_224 |     2 | CEO > Mgr_3 > Dev_224
+    234 | Dev_234 |     2 | CEO > Mgr_3 > Dev_234
+     24 | Dev_24  |     2 | CEO > Mgr_3 > Dev_24
+    244 | Dev_244 |     2 | CEO > Mgr_3 > Dev_244
+    254 | Dev_254 |     2 | CEO > Mgr_3 > Dev_254
+    264 | Dev_264 |     2 | CEO > Mgr_3 > Dev_264
+    274 | Dev_274 |     2 | CEO > Mgr_3 > Dev_274
+    284 | Dev_284 |     2 | CEO > Mgr_3 > Dev_284
+    294 | Dev_294 |     2 | CEO > Mgr_3 > Dev_294
+    304 | Dev_304 |     2 | CEO > Mgr_3 > Dev_304
+     34 | Dev_34  |     2 | CEO > Mgr_3 > Dev_34
+     44 | Dev_44  |     2 | CEO > Mgr_3 > Dev_44
+     54 | Dev_54  |     2 | CEO > Mgr_3 > Dev_54
+     64 | Dev_64  |     2 | CEO > Mgr_3 > Dev_64
+     74 | Dev_74  |     2 | CEO > Mgr_3 > Dev_74
+     84 | Dev_84  |     2 | CEO > Mgr_3 > Dev_84
+     94 | Dev_94  |     2 | CEO > Mgr_3 > Dev_94
+      4 | Mgr_4   |     1 | CEO > Mgr_4
+    105 | Dev_105 |     2 | CEO > Mgr_4 > Dev_105
+    115 | Dev_115 |     2 | CEO > Mgr_4 > Dev_115
+    125 | Dev_125 |     2 | CEO > Mgr_4 > Dev_125
+    135 | Dev_135 |     2 | CEO > Mgr_4 > Dev_135
+    145 | Dev_145 |     2 | CEO > Mgr_4 > Dev_145
+     15 | Dev_15  |     2 | CEO > Mgr_4 > Dev_15
+    155 | Dev_155 |     2 | CEO > Mgr_4 > Dev_155
+    165 | Dev_165 |     2 | CEO > Mgr_4 > Dev_165
+    175 | Dev_175 |     2 | CEO > Mgr_4 > Dev_175
+    185 | Dev_185 |     2 | CEO > Mgr_4 > Dev_185
+    195 | Dev_195 |     2 | CEO > Mgr_4 > Dev_195
+    205 | Dev_205 |     2 | CEO > Mgr_4 > Dev_205
+    215 | Dev_215 |     2 | CEO > Mgr_4 > Dev_215
+    225 | Dev_225 |     2 | CEO > Mgr_4 > Dev_225
+    235 | Dev_235 |     2 | CEO > Mgr_4 > Dev_235
+    245 | Dev_245 |     2 | CEO > Mgr_4 > Dev_245
+     25 | Dev_25  |     2 | CEO > Mgr_4 > Dev_25
+    255 | Dev_255 |     2 | CEO > Mgr_4 > Dev_255
+    265 | Dev_265 |     2 | CEO > Mgr_4 > Dev_265
+    275 | Dev_275 |     2 | CEO > Mgr_4 > Dev_275
+    285 | Dev_285 |     2 | CEO > Mgr_4 > Dev_285
+    295 | Dev_295 |     2 | CEO > Mgr_4 > Dev_295
+    305 | Dev_305 |     2 | CEO > Mgr_4 > Dev_305
+     35 | Dev_35  |     2 | CEO > Mgr_4 > Dev_35
+     45 | Dev_45  |     2 | CEO > Mgr_4 > Dev_45
+     55 | Dev_55  |     2 | CEO > Mgr_4 > Dev_55
+     65 | Dev_65  |     2 | CEO > Mgr_4 > Dev_65
+     75 | Dev_75  |     2 | CEO > Mgr_4 > Dev_75
+     85 | Dev_85  |     2 | CEO > Mgr_4 > Dev_85
+     95 | Dev_95  |     2 | CEO > Mgr_4 > Dev_95
+      5 | Mgr_5   |     1 | CEO > Mgr_5
+    106 | Dev_106 |     2 | CEO > Mgr_5 > Dev_106
+    116 | Dev_116 |     2 | CEO > Mgr_5 > Dev_116
+    126 | Dev_126 |     2 | CEO > Mgr_5 > Dev_126
+    136 | Dev_136 |     2 | CEO > Mgr_5 > Dev_136
+    146 | Dev_146 |     2 | CEO > Mgr_5 > Dev_146
+    156 | Dev_156 |     2 | CEO > Mgr_5 > Dev_156
+     16 | Dev_16  |     2 | CEO > Mgr_5 > Dev_16
+    166 | Dev_166 |     2 | CEO > Mgr_5 > Dev_166
+    176 | Dev_176 |     2 | CEO > Mgr_5 > Dev_176
+    186 | Dev_186 |     2 | CEO > Mgr_5 > Dev_186
+    196 | Dev_196 |     2 | CEO > Mgr_5 > Dev_196
+    206 | Dev_206 |     2 | CEO > Mgr_5 > Dev_206
+    216 | Dev_216 |     2 | CEO > Mgr_5 > Dev_216
+    226 | Dev_226 |     2 | CEO > Mgr_5 > Dev_226
+    236 | Dev_236 |     2 | CEO > Mgr_5 > Dev_236
+    246 | Dev_246 |     2 | CEO > Mgr_5 > Dev_246
+    256 | Dev_256 |     2 | CEO > Mgr_5 > Dev_256
+     26 | Dev_26  |     2 | CEO > Mgr_5 > Dev_26
+    266 | Dev_266 |     2 | CEO > Mgr_5 > Dev_266
+    276 | Dev_276 |     2 | CEO > Mgr_5 > Dev_276
+    286 | Dev_286 |     2 | CEO > Mgr_5 > Dev_286
+    296 | Dev_296 |     2 | CEO > Mgr_5 > Dev_296
+    306 | Dev_306 |     2 | CEO > Mgr_5 > Dev_306
+     36 | Dev_36  |     2 | CEO > Mgr_5 > Dev_36
+     46 | Dev_46  |     2 | CEO > Mgr_5 > Dev_46
+     56 | Dev_56  |     2 | CEO > Mgr_5 > Dev_56
+     66 | Dev_66  |     2 | CEO > Mgr_5 > Dev_66
+     76 | Dev_76  |     2 | CEO > Mgr_5 > Dev_76
+     86 | Dev_86  |     2 | CEO > Mgr_5 > Dev_86
+     96 | Dev_96  |     2 | CEO > Mgr_5 > Dev_96
+      6 | Mgr_6   |     1 | CEO > Mgr_6
+    107 | Dev_107 |     2 | CEO > Mgr_6 > Dev_107
+    117 | Dev_117 |     2 | CEO > Mgr_6 > Dev_117
+    127 | Dev_127 |     2 | CEO > Mgr_6 > Dev_127
+    137 | Dev_137 |     2 | CEO > Mgr_6 > Dev_137
+    147 | Dev_147 |     2 | CEO > Mgr_6 > Dev_147
+    157 | Dev_157 |     2 | CEO > Mgr_6 > Dev_157
+    167 | Dev_167 |     2 | CEO > Mgr_6 > Dev_167
+     17 | Dev_17  |     2 | CEO > Mgr_6 > Dev_17
+    177 | Dev_177 |     2 | CEO > Mgr_6 > Dev_177
+    187 | Dev_187 |     2 | CEO > Mgr_6 > Dev_187
+    197 | Dev_197 |     2 | CEO > Mgr_6 > Dev_197
+    207 | Dev_207 |     2 | CEO > Mgr_6 > Dev_207
+    217 | Dev_217 |     2 | CEO > Mgr_6 > Dev_217
+    227 | Dev_227 |     2 | CEO > Mgr_6 > Dev_227
+    237 | Dev_237 |     2 | CEO > Mgr_6 > Dev_237
+    247 | Dev_247 |     2 | CEO > Mgr_6 > Dev_247
+    257 | Dev_257 |     2 | CEO > Mgr_6 > Dev_257
+    267 | Dev_267 |     2 | CEO > Mgr_6 > Dev_267
+     27 | Dev_27  |     2 | CEO > Mgr_6 > Dev_27
+    277 | Dev_277 |     2 | CEO > Mgr_6 > Dev_277
+    287 | Dev_287 |     2 | CEO > Mgr_6 > Dev_287
+    297 | Dev_297 |     2 | CEO > Mgr_6 > Dev_297
+    307 | Dev_307 |     2 | CEO > Mgr_6 > Dev_307
+     37 | Dev_37  |     2 | CEO > Mgr_6 > Dev_37
+     47 | Dev_47  |     2 | CEO > Mgr_6 > Dev_47
+     57 | Dev_57  |     2 | CEO > Mgr_6 > Dev_57
+     67 | Dev_67  |     2 | CEO > Mgr_6 > Dev_67
+     77 | Dev_77  |     2 | CEO > Mgr_6 > Dev_77
+     87 | Dev_87  |     2 | CEO > Mgr_6 > Dev_87
+     97 | Dev_97  |     2 | CEO > Mgr_6 > Dev_97
+      7 | Mgr_7   |     1 | CEO > Mgr_7
+    108 | Dev_108 |     2 | CEO > Mgr_7 > Dev_108
+    118 | Dev_118 |     2 | CEO > Mgr_7 > Dev_118
+    128 | Dev_128 |     2 | CEO > Mgr_7 > Dev_128
+    138 | Dev_138 |     2 | CEO > Mgr_7 > Dev_138
+    148 | Dev_148 |     2 | CEO > Mgr_7 > Dev_148
+    158 | Dev_158 |     2 | CEO > Mgr_7 > Dev_158
+    168 | Dev_168 |     2 | CEO > Mgr_7 > Dev_168
+    178 | Dev_178 |     2 | CEO > Mgr_7 > Dev_178
+     18 | Dev_18  |     2 | CEO > Mgr_7 > Dev_18
+    188 | Dev_188 |     2 | CEO > Mgr_7 > Dev_188
+    198 | Dev_198 |     2 | CEO > Mgr_7 > Dev_198
+    208 | Dev_208 |     2 | CEO > Mgr_7 > Dev_208
+    218 | Dev_218 |     2 | CEO > Mgr_7 > Dev_218
+    228 | Dev_228 |     2 | CEO > Mgr_7 > Dev_228
+    238 | Dev_238 |     2 | CEO > Mgr_7 > Dev_238
+    248 | Dev_248 |     2 | CEO > Mgr_7 > Dev_248
+    258 | Dev_258 |     2 | CEO > Mgr_7 > Dev_258
+    268 | Dev_268 |     2 | CEO > Mgr_7 > Dev_268
+    278 | Dev_278 |     2 | CEO > Mgr_7 > Dev_278
+     28 | Dev_28  |     2 | CEO > Mgr_7 > Dev_28
+    288 | Dev_288 |     2 | CEO > Mgr_7 > Dev_288
+    298 | Dev_298 |     2 | CEO > Mgr_7 > Dev_298
+    308 | Dev_308 |     2 | CEO > Mgr_7 > Dev_308
+     38 | Dev_38  |     2 | CEO > Mgr_7 > Dev_38
+     48 | Dev_48  |     2 | CEO > Mgr_7 > Dev_48
+     58 | Dev_58  |     2 | CEO > Mgr_7 > Dev_58
+     68 | Dev_68  |     2 | CEO > Mgr_7 > Dev_68
+     78 | Dev_78  |     2 | CEO > Mgr_7 > Dev_78
+     88 | Dev_88  |     2 | CEO > Mgr_7 > Dev_88
+     98 | Dev_98  |     2 | CEO > Mgr_7 > Dev_98
+      8 | Mgr_8   |     1 | CEO > Mgr_8
+    109 | Dev_109 |     2 | CEO > Mgr_8 > Dev_109
+    119 | Dev_119 |     2 | CEO > Mgr_8 > Dev_119
+    129 | Dev_129 |     2 | CEO > Mgr_8 > Dev_129
+    139 | Dev_139 |     2 | CEO > Mgr_8 > Dev_139
+    149 | Dev_149 |     2 | CEO > Mgr_8 > Dev_149
+    159 | Dev_159 |     2 | CEO > Mgr_8 > Dev_159
+    169 | Dev_169 |     2 | CEO > Mgr_8 > Dev_169
+    179 | Dev_179 |     2 | CEO > Mgr_8 > Dev_179
+    189 | Dev_189 |     2 | CEO > Mgr_8 > Dev_189
+     19 | Dev_19  |     2 | CEO > Mgr_8 > Dev_19
+    199 | Dev_199 |     2 | CEO > Mgr_8 > Dev_199
+    209 | Dev_209 |     2 | CEO > Mgr_8 > Dev_209
+    219 | Dev_219 |     2 | CEO > Mgr_8 > Dev_219
+    229 | Dev_229 |     2 | CEO > Mgr_8 > Dev_229
+    239 | Dev_239 |     2 | CEO > Mgr_8 > Dev_239
+    249 | Dev_249 |     2 | CEO > Mgr_8 > Dev_249
+    259 | Dev_259 |     2 | CEO > Mgr_8 > Dev_259
+    269 | Dev_269 |     2 | CEO > Mgr_8 > Dev_269
+    279 | Dev_279 |     2 | CEO > Mgr_8 > Dev_279
+    289 | Dev_289 |     2 | CEO > Mgr_8 > Dev_289
+     29 | Dev_29  |     2 | CEO > Mgr_8 > Dev_29
+    299 | Dev_299 |     2 | CEO > Mgr_8 > Dev_299
+    309 | Dev_309 |     2 | CEO > Mgr_8 > Dev_309
+     39 | Dev_39  |     2 | CEO > Mgr_8 > Dev_39
+     49 | Dev_49  |     2 | CEO > Mgr_8 > Dev_49
+     59 | Dev_59  |     2 | CEO > Mgr_8 > Dev_59
+     69 | Dev_69  |     2 | CEO > Mgr_8 > Dev_69
+     79 | Dev_79  |     2 | CEO > Mgr_8 > Dev_79
+     89 | Dev_89  |     2 | CEO > Mgr_8 > Dev_89
+     99 | Dev_99  |     2 | CEO > Mgr_8 > Dev_99
+      9 | Mgr_9   |     1 | CEO > Mgr_9
+    100 | Dev_100 |     2 | CEO > Mgr_9 > Dev_100
+    110 | Dev_110 |     2 | CEO > Mgr_9 > Dev_110
+    120 | Dev_120 |     2 | CEO > Mgr_9 > Dev_120
+    130 | Dev_130 |     2 | CEO > Mgr_9 > Dev_130
+    140 | Dev_140 |     2 | CEO > Mgr_9 > Dev_140
+    150 | Dev_150 |     2 | CEO > Mgr_9 > Dev_150
+    160 | Dev_160 |     2 | CEO > Mgr_9 > Dev_160
+    170 | Dev_170 |     2 | CEO > Mgr_9 > Dev_170
+    180 | Dev_180 |     2 | CEO > Mgr_9 > Dev_180
+    190 | Dev_190 |     2 | CEO > Mgr_9 > Dev_190
+     20 | Dev_20  |     2 | CEO > Mgr_9 > Dev_20
+    200 | Dev_200 |     2 | CEO > Mgr_9 > Dev_200
+    210 | Dev_210 |     2 | CEO > Mgr_9 > Dev_210
+    220 | Dev_220 |     2 | CEO > Mgr_9 > Dev_220
+    230 | Dev_230 |     2 | CEO > Mgr_9 > Dev_230
+    240 | Dev_240 |     2 | CEO > Mgr_9 > Dev_240
+    250 | Dev_250 |     2 | CEO > Mgr_9 > Dev_250
+    260 | Dev_260 |     2 | CEO > Mgr_9 > Dev_260
+    270 | Dev_270 |     2 | CEO > Mgr_9 > Dev_270
+    280 | Dev_280 |     2 | CEO > Mgr_9 > Dev_280
+    290 | Dev_290 |     2 | CEO > Mgr_9 > Dev_290
+     30 | Dev_30  |     2 | CEO > Mgr_9 > Dev_30
+    300 | Dev_300 |     2 | CEO > Mgr_9 > Dev_300
+    310 | Dev_310 |     2 | CEO > Mgr_9 > Dev_310
+     40 | Dev_40  |     2 | CEO > Mgr_9 > Dev_40
+     50 | Dev_50  |     2 | CEO > Mgr_9 > Dev_50
+     60 | Dev_60  |     2 | CEO > Mgr_9 > Dev_60
+     70 | Dev_70  |     2 | CEO > Mgr_9 > Dev_70
+     80 | Dev_80  |     2 | CEO > Mgr_9 > Dev_80
+     90 | Dev_90  |     2 | CEO > Mgr_9 > Dev_90
+(311개 행)
+
+-- 22-보조. 매니저별 직속 부하 직원 수 (direct_reports)
+--   ※ 실측: 적재 수식이 manager_id = 1+((gs-1)%10) 이어서
+--     Dev 30명이 CEO 직속, Mgr_11은 부하 0명 (슬라이드 배경과 다름)
+--     → 부하 0명인 Mgr_11도 보이도록 LEFT JOIN 사용
+SELECT m.emp_id, m.name, COUNT(e.emp_id) AS direct_reports
+FROM lab.emp m
+LEFT JOIN lab.emp e ON e.manager_id = m.emp_id
+WHERE m.manager_id IS NULL          -- CEO
+   OR m.name LIKE 'Mgr\_%'          -- 매니저 10명
+GROUP BY m.emp_id, m.name
+ORDER BY m.emp_id;
+ emp_id |  name  | direct_reports 
+--------+--------+----------------
+      1 | CEO    |             40
+      2 | Mgr_2  |             30
+      3 | Mgr_3  |             30
+      4 | Mgr_4  |             30
+      5 | Mgr_5  |             30
+      6 | Mgr_6  |             30
+      7 | Mgr_7  |             30
+      8 | Mgr_8  |             30
+      9 | Mgr_9  |             30
+     10 | Mgr_10 |             30
+     11 | Mgr_11 |              0
+(11개 행)
+
